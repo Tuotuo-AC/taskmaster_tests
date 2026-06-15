@@ -1,7 +1,6 @@
 # 覆盖正向、异常、边界场景
 import pytest
 import json
-from test_todos import *
 
 def test_get_all_todos(api_client):
     """测试获取所有任务：状态码200，返回列表"""
@@ -75,3 +74,20 @@ def test_todo_by_user_id(api_client, test_case):
     first_todo = todos[0]
     assert "title" in first_todo
     assert first_todo["userId"] == test_case["user_id"]
+
+
+def test_todo_completed_is_boolean(api_client):
+    response = api_client.get("todos/1")
+    assert response.status_code == 200
+    completed = response.json()["completed"]
+    assert isinstance(completed, bool)
+
+
+'''让同一个测试函数用多组参数运行'''
+@pytest.mark.parametrize("user_id", [1, 2, 3])
+def test_todos_belong_to_user(api_client, user_id):
+    response = api_client.get("todos", params={"userId": user_id})
+    assert response.status_code == 200
+    todos = response.json()
+    for todo in todos:
+        assert todo["userId"] == user_id
